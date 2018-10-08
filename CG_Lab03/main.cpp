@@ -28,8 +28,8 @@ using namespace std;
 GLuint shaderProgramID;
 
 unsigned int teapot_vao = 0;
-int width = 1800.0;
-int height = 1600.0;
+int width = 800.0;
+int height = 600.0;
 GLuint loc1;
 GLuint loc2;
 
