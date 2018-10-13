@@ -71,6 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(IncludePath)</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -141,6 +142,12 @@
   <ItemGroup>
     <ClInclude Include="maths_funcs.h" />
     <ClInclude Include="teapot.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CG_Utility\CG_Utility.vcxproj">
+      <Project>{c520f567-c94c-45bb-b8ab-49b773e4ae75}</Project>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
