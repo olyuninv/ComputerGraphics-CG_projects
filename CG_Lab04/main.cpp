@@ -23,8 +23,8 @@ int height = 600;
 
 GLuint loc1;
 GLuint loc2;
-GLfloat rotatez = 0.0f;
 GLfloat rotatey = 0.0f;
+GLfloat rotatez = 0.0f;
 GLfloat movex = 0.0f;
 GLfloat movey = 5.0f;
 
@@ -38,7 +38,7 @@ Direction direction = Direction::None;
 bool printInfo = false;
 
 GLfloat const step = 0.1f;
-vec3 translateVector1 = vec3(0, 30, 0);
+vec3 translateVector1 = vec3(0, -30, 0);
 vec3 scaleVector1 = vec3(0.5f, 0.5f, 0.5f);
 vec3 rotateAngles1 = vec3(0, 0, 0);
 
@@ -216,7 +216,7 @@ void display() {
 	glUseProgram(shaderProgramID);
 		
 	// Position the camera
-	vec3 cameraPosition = vec3(0.0, 0.0, 60.0);
+	vec3 cameraPosition = vec3(0.0, 0.0, 70.0);
 	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
 	mat4 persp_proj = perspective(40.0, aspectRatio, 0.1, 100.0);
 	
@@ -234,7 +234,7 @@ void display() {
 
 	// TEAPOT2
 	mat4 local2 = identity_mat4();
-	local2 = rotate_y_deg(local2, rotatez);	
+	local2 = rotate_y_deg(local2, rotatey + 90);	
 	local2 = translate(local2, vec3(0.0, -15.0, 0.0));
 	
 	mat4 global2 = global1 * local2;
@@ -244,34 +244,34 @@ void display() {
 
 	// TEAPOT3
 	mat4 local3 = identity_mat4();
-	local3 = rotate_z_deg(local3, rotatey);	
-	local3 = translate(local3, vec3(0.0, -20.0, 0.0));
+	local3 = rotate_z_deg(local3, rotatez);	
+	local3 = translate(local3, vec3(0.0, 30.0, 0.0));
 	
-	mat4 global3 = global2 * local3;
+	mat4 global3 = global1 * local3;
 	updateUniformVariables(global3);
 	drawTeapot();
 	
 	// TEAPOT4
 	mat4 local4 = identity_mat4();
 	//local4 = rotate_z_deg(local4, rotatey);	
-	local4 = translate(local4, vec3(-25.0, -20.0 + movey * sin(rotatey), 0.0));
+	local4 = translate(local4, vec3(-25.0, movey * sin(rotatez), 0.0));
 
-	mat4 global4 = global2 * local4;
+	mat4 global4 = global3 * local4;
 	updateUniformVariables(global4);
 	drawTeapot();
 
 	// TEAPOT5
 	mat4 local5 = identity_mat4();
 	//local4 = rotate_z_deg(local4, rotatey);	
-	local5 = translate(local5, vec3(25.0, -20.0 + movey * cos(rotatey), 0.0));
+	local5 = translate(local5, vec3(25.0, movey * cos(rotatez), 0.0));
 
-	mat4 global5 = global2 * local5;
+	mat4 global5 = global3 * local5;
 	updateUniformVariables(global5);
 	drawTeapot();
 
 	// TEAPOT6
 	mat4 local6 = identity_mat4();
-	local6 = rotate_y_deg(local6, -rotatey);	
+	local6 = rotate_y_deg(local6, -rotatez);	
 	local6 = translate(local6, vec3(0.0, -15.0, 0.0));
 
 	mat4 global6 = global4 * local6;
@@ -280,7 +280,7 @@ void display() {
 
 	// TEAPOT7
 	mat4 local7 = identity_mat4();
-	local7 = rotate_y_deg(local7, -rotatey);	
+	local7 = rotate_y_deg(local7, -rotatez);	
 	local7 = translate(local7, vec3(0.0, -15.0, 0.0));
 
 	mat4 global7 = global5 * local7;
@@ -301,8 +301,8 @@ void updateScene() {
 		delta = 0.03f;
 	last_time = curr_time;
 
-	rotatez += 0.2f;
 	rotatey += 0.2f;
+	rotatez += 0.2f;
 	// Draw the next frame
 	glutPostRedisplay();
 }
