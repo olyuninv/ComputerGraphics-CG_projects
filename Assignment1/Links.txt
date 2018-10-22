@@ -1,0 +1,8 @@
+OBJ loader - credits:
+https://github.com/Bly7/OBJ-Loader/tree/master/Source
+
+Free 3D  models
+https://free3d.com/3d-models
+
+obj:
+https://en.wikibooks.org/wiki/OpenGL_Programming/Modern_OpenGL_Tutorial_Load_OBJ
