@@ -11,6 +11,6 @@ namespace Assignment1
 
 	void CGObject::Draw()
 	{
-		glDrawElements(GL_TRIANGLES, Mesh.Indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_TRIANGLES, this->Mesh.Indices.size(), GL_UNSIGNED_INT, (void*)((this->startIBO) * sizeof(unsigned int))); 
 	}
 }

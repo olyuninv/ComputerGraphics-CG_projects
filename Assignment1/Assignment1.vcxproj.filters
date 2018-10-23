@@ -35,14 +35,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\simpleFragmentShader.txt">
-      <Filter>ShaderFiles</Filter>
-    </Text>
-    <Text Include="Shaders\simpleVertexShader.txt">
-      <Filter>ShaderFiles</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="maths_funcs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -58,5 +50,13 @@
     <ClInclude Include="Obj_parser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\simpleFragmentShader.txt">
+      <Filter>ShaderFiles</Filter>
+    </Text>
+    <Text Include="Shaders\simpleVertexShader.txt">
+      <Filter>ShaderFiles</Filter>
+    </Text>
   </ItemGroup>
 </Project>

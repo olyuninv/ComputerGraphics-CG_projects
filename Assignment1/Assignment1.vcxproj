@@ -138,10 +138,6 @@
     <ClCompile Include="Obj_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Shaders\simpleFragmentShader.txt" />
-    <Text Include="Shaders\simpleVertexShader.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="CGObject.h" />
     <ClInclude Include="maths_funcs.h" />
     <ClInclude Include="Mesh.h" />
@@ -153,6 +149,10 @@
       <Project>{c520f567-c94c-45bb-b8ab-49b773e4ae75}</Project>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Shaders\simpleFragmentShader.txt" />
+    <Text Include="Shaders\simpleVertexShader.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
