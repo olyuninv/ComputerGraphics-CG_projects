@@ -36,7 +36,7 @@ GLuint ibo = 0;
 Assignment1::CGObject plane;
 Assignment1::CGObject knight;
 Assignment1::CGObject root;
-Assignment1::CGObject cylinder;
+Assignment1::CGObject cylinderBottom1;
 
 GLuint loc1;
 GLuint loc2;
@@ -83,11 +83,6 @@ void updateUniformVariables(mat4 model, mat4 view, mat4 persp_proj)
 	glUniformMatrix4fv(proj_mat_location, 1, GL_FALSE, persp_proj.m);
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	updateUniformVariables(model);
-}
-
-void drawTeapot()
-{
-	//	glDrawArrays(GL_TRIANGLES, 0, teapot_vertex_count);
 }
 
 // Shader Functions- click on + to expand
@@ -194,34 +189,72 @@ void linkCurrentBuffertoShader(int objectIndex)
 
 		glEnableVertexAttribArray(loc1);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), NULL);
+		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float)));
 
 		glEnableVertexAttribArray(loc2);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), BUFFER_OFFSET(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
 
 		glEnableVertexAttribArray(loc3);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), BUFFER_OFFSET(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	}
 	else if (objectIndex == 2)
 	{
+		glBindVertexArray(knight_vao);
+
+		glEnableVertexAttribArray(loc1);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float)));
+
+		glEnableVertexAttribArray(loc2);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
+
+		glEnableVertexAttribArray(loc3);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+
+		//IBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	}
+	else if (objectIndex == 3)
+	{
 		glBindVertexArray(cylinder_vao);
 
 		glEnableVertexAttribArray(loc1);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinder.startVBO * 8 * sizeof(float)));
+		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float)));
 
 		glEnableVertexAttribArray(loc2);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinder.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
+		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
 
 		glEnableVertexAttribArray(loc3);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinder.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+
+		//IBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	}
+	else if (objectIndex == 4)
+	{
+		glBindVertexArray(root_vao);
+
+		glEnableVertexAttribArray(loc1);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float)));
+
+		glEnableVertexAttribArray(loc2);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
+
+		glEnableVertexAttribArray(loc3);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -239,7 +272,13 @@ void addToObjectBuffer(int objectIndex, int startVBO, int n_vertices, float *ver
 		glGenVertexArrays(1, &plane_vao);
 		break;
 	case 2:
-		glGenVertexArrays(1, &cylinder_vao);		
+		glGenVertexArrays(1, &knight_vao);		
+		break;
+	case 3:
+		glGenVertexArrays(1, &cylinder_vao);
+		break;
+	case 4:
+		glGenVertexArrays(1, &root_vao);
 		break;
 	}
 	
@@ -289,23 +328,52 @@ void display() {
 	glUseProgram(shaderProgramID);
 
 	// Position the camera
-	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0], 20.0 + cameraTranslateVector.v[1], 20.0 + cameraTranslateVector.v[2]);
-	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0], 1.0 + cameraRotateVector.v[1], 0.0 + cameraRotateVector.v[2]));
+	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 20.0 + cameraTranslateVector.v[1] * step, 20.0 + cameraTranslateVector.v[2] * step);
+	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * step, 1.0 + cameraRotateVector.v[1] * step, 0.0 + cameraRotateVector.v[2] * step));
 	mat4 persp_proj = perspective(40.0, aspectRatio, 0.1, 100.0);
 
 	mat4 local1 = identity_mat4();
-
 	updateUniformVariables(local1, view, persp_proj);
 
 	// DRAW PLANE
 	glBindVertexArray(plane_vao);	
 	linkCurrentBuffertoShader(1);
 	plane.Draw();
+	
+	// DRAW ROOT
+	mat4 localRoot = identity_mat4();// Root of the Hierarchy			
+	//localRoot = scale(local1, scaleVector1);
+	localRoot = rotate_x_deg(localRoot, root.initialRotateAngle.v[0]);
+	localRoot = rotate_y_deg(localRoot, root.initialRotateAngle.v[1]);
+	localRoot = rotate_z_deg(localRoot, root.initialRotateAngle.v[2]);
+	localRoot = translate(localRoot, root.initialTranslateVector);
+
+	mat4 globalRoot = localRoot;
+	updateUniformVariables(globalRoot);
+
+	glBindVertexArray(root_vao);
+	linkCurrentBuffertoShader(4);
+	root.Draw();
 
 	// DRAW CYLINDER
+	mat4 localCylinderBottom1 = identity_mat4();
+	localCylinderBottom1 = rotate_x_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[0]);
+	localCylinderBottom1 = rotate_y_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[1]);
+	localCylinderBottom1 = rotate_z_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[2]);
+	localCylinderBottom1 = translate(localCylinderBottom1, cylinderBottom1.initialTranslateVector);
+	mat4 globalCylinderBottom1 = globalRoot * localCylinderBottom1;
+	updateUniformVariables(globalCylinderBottom1);
 	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom1.Draw();
+
+	// DRAW Knight
+	mat4 localKnight = identity_mat4();
+	mat4 globalKnight = localKnight;
+	updateUniformVariables(globalKnight);
+	glBindVertexArray(knight_vao);
 	linkCurrentBuffertoShader(2);
-	cylinder.Draw();
+	knight.Draw();
 
 	glutSwapBuffers();
 
@@ -358,43 +426,71 @@ void createObjects()
 	n_vbovertices += plane.Mesh.Vertices.size();
 	n_ibovertices += plane.Mesh.Indices.size();
 
-	objl::Loader obj_loader; // = new objl::Loader();
+	objl::Loader obj_loader1; // = new objl::Loader();
+	objl::Loader obj_loader2; // = new objl::Loader();
+	objl::Loader obj_loader3; // = new objl::Loader();
 
 	// load meshes
-	const char* knightFileName = "../Assignment1/Mesh/Knight/Knight.obj";
+	const char* knightFileName = "../Assignment1/Mesh/Knight/Knight_sm.obj";
 	const char* rootFileName = "../Assignment1/Mesh/Palm/palm.obj";
 	const char* cylinderFileName = "../Assignment1/Mesh/Cylinder/cylinder.obj";
-
-	float *vertices_ptr_cylinder = NULL;
-	unsigned int *indices_ptr_cylinder = NULL;
-	bool result = obj_loader.LoadFile(cylinderFileName);
+		
+	// root
+	float *vertices_ptr_root = NULL;
+	unsigned int *indices_ptr_root = NULL;
+	bool result = obj_loader1.LoadFile(rootFileName);
 	if (result)
 	{
 		// create separate vertex array for vertices, normals etc
-		vertices_ptr_cylinder = &obj_loader.LoadedMeshes[0].Vertices[0].Position.X;
-		indices_ptr_cylinder = &obj_loader.LoadedMeshes[0].Indices[0];
-		cylinder = Assignment1::CGObject();
-		cylinder.Mesh = obj_loader.LoadedMeshes[0];
-		cylinder.startVBO = n_vbovertices;
-		cylinder.startIBO = n_ibovertices;
-				
-		n_vbovertices += cylinder.Mesh.Vertices.size();
-		n_ibovertices += cylinder.Mesh.Indices.size();
+		vertices_ptr_root = &obj_loader1.LoadedMeshes[0].Vertices[0].Position.X;
+		indices_ptr_root = &obj_loader1.LoadedMeshes[0].Indices[0];
+		root = Assignment1::CGObject();
+		root.Mesh = obj_loader1.LoadedMeshes[0];
+		root.startVBO = n_vbovertices;
+		root.startIBO = n_ibovertices;
+		root.initialTranslateVector = vec3(-10.0f, 3.0f, -10.0f);
+
+		n_vbovertices += root.Mesh.Vertices.size();
+		n_ibovertices += root.Mesh.Indices.size();
 	}
 
-	//// Load cylinder
-	//const char* cylinderFileName = "../Assignment1/Mesh/Cylinder/cylinder.obj";
-	//bool resultGround = obj_loader.LoadFile(cylinderFileName);
-	//if (resultGround)
-	//{
-	//	// create separate vertex array for vertices, normals etc
-	//	float *vertices_ptr = &obj_loader.LoadedMeshes[0].Vertices[0].Position.X;
-	//	unsigned int *indices_ptr = &obj_loader.LoadedMeshes[0].Indices[0];
-	//	generateObjectBufferGround(obj_loader.LoadedMeshes[0].Vertices.size(), vertices_ptr, obj_loader.LoadedMeshes[0].Indices.size(), indices_ptr);
-	//	ground = Assignment1::CGObject();
-	//	ground.Mesh = obj_loader.LoadedMeshes[0];
-	//}
+	// cylinder
+	float *vertices_ptr_cylinder = NULL;
+	unsigned int *indices_ptr_cylinder = NULL;
+	result = obj_loader2.LoadFile(cylinderFileName);
+	if (result)
+	{
+		// create separate vertex array for vertices, normals etc
+		vertices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Vertices[0].Position.X;
+		indices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Indices[0];
+		cylinderBottom1 = Assignment1::CGObject();
+		cylinderBottom1.Mesh = obj_loader2.LoadedMeshes[0];
+		cylinderBottom1.startVBO = n_vbovertices;
+		cylinderBottom1.startIBO = n_ibovertices;
+		cylinderBottom1.initialTranslateVector = vec3(-10.0f, -1.0f, 0.0f);
+		cylinderBottom1.Parent = &root;
+				
+		n_vbovertices += cylinderBottom1.Mesh.Vertices.size();
+		n_ibovertices += cylinderBottom1.Mesh.Indices.size();
+	}
 
+	// knight
+	float *vertices_ptr_knight = NULL;
+	unsigned int *indices_ptr_knight = NULL;
+	result = obj_loader3.LoadFile(knightFileName);
+	if (result)
+	{		
+		vertices_ptr_knight = &obj_loader3.LoadedMeshes[0].Vertices[0].Position.X;
+		indices_ptr_knight = &obj_loader3.LoadedMeshes[0].Indices[0];
+		knight = Assignment1::CGObject();
+		knight.Mesh = obj_loader3.LoadedMeshes[0];
+		knight.startVBO = n_vbovertices;
+		knight.startIBO = n_ibovertices;
+
+		n_vbovertices += knight.Mesh.Vertices.size();
+		n_ibovertices += knight.Mesh.Indices.size();
+	}
+		
 	//Declare your uniform variables that will be used in your shader
 	matrix_location = glGetUniformLocation(shaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
@@ -405,7 +501,7 @@ void createObjects()
 	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normals");
 	loc3 = glGetAttribLocation(shaderProgramID, "vertex_texture");
 
-	// Create vertex buffer
+	// Create VBO
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	GLenum error = glGetError();
@@ -414,20 +510,22 @@ void createObjects()
 	if (error != 0)
 		throw exception("Could not initialise Vertex Buffer");
 	
-	addToObjectBuffer(1, plane.startVBO, plane.Mesh.Vertices.size(), vertices_ptr_plane);
-	addToObjectBuffer(2, cylinder.startVBO, cylinder.Mesh.Vertices.size(), vertices_ptr_cylinder);
-		
-	// Create index buffer
+	addToObjectBuffer(1, plane.startVBO, plane.Mesh.Vertices.size(), vertices_ptr_plane);	
+	addToObjectBuffer(4, root.startVBO, root.Mesh.Vertices.size(), vertices_ptr_root); 
+	addToObjectBuffer(3, cylinderBottom1.startVBO, cylinderBottom1.Mesh.Vertices.size(), vertices_ptr_cylinder);
+	addToObjectBuffer(2, knight.startVBO, knight.Mesh.Vertices.size(), vertices_ptr_knight);
+			
+	// Create IBO
 	glGenBuffers(1, &ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, n_ibovertices * sizeof(unsigned int), NULL, GL_STATIC_DRAW);
 
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, plane.startIBO * sizeof(unsigned int), sizeof(unsigned int) * plane.Mesh.Indices.size(), indices_ptr_plane);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, cylinder.startIBO * sizeof(unsigned int), sizeof(unsigned int) * cylinder.Mesh.Indices.size(), indices_ptr_cylinder);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, plane.startIBO * sizeof(unsigned int), sizeof(unsigned int) * plane.Mesh.Indices.size(), indices_ptr_plane);	
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, root.startIBO * sizeof(unsigned int), sizeof(unsigned int) * root.Mesh.Indices.size(), indices_ptr_root);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, cylinderBottom1.startIBO * sizeof(unsigned int), sizeof(unsigned int) * cylinderBottom1.Mesh.Indices.size(), indices_ptr_cylinder);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, knight.startIBO * sizeof(unsigned int), sizeof(unsigned int) * knight.Mesh.Indices.size(), indices_ptr_knight);
 	
 	//addToIndexBuffer(iboMeshes[0], plane.Mesh.Indices.size(), indices_ptr_plane);
-	//addToObjectBuffer(obj_loader.LoadedMeshes[0].Vertices.size(), vertices_ptr, obj_loader.LoadedMeshes[0].Indices.size(), indices_ptr);
-
 }
 
 void init()
