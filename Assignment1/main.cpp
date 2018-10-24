@@ -37,6 +37,13 @@ Assignment1::CGObject plane;
 Assignment1::CGObject knight;
 Assignment1::CGObject root;
 Assignment1::CGObject cylinderBottom1;
+Assignment1::CGObject cylinderBottom2;
+Assignment1::CGObject cylinderBottom3;
+Assignment1::CGObject cylinderBottom4;
+Assignment1::CGObject cylinderTop1;
+Assignment1::CGObject cylinderTop2;
+Assignment1::CGObject cylinderTop3;
+Assignment1::CGObject cylinderTop4;
 
 GLuint loc1;
 GLuint loc2;
@@ -355,7 +362,19 @@ void display() {
 	linkCurrentBuffertoShader(4);
 	root.Draw();
 
-	// DRAW CYLINDER
+	// DRAW CYLINDER - Bottom 1
+	mat4 localCylinderBottom1 = identity_mat4();
+	localCylinderBottom1 = rotate_x_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[0]);
+	localCylinderBottom1 = rotate_y_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[1]);
+	localCylinderBottom1 = rotate_z_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[2]);
+	localCylinderBottom1 = translate(localCylinderBottom1, cylinderBottom1.initialTranslateVector);
+	mat4 globalCylinderBottom1 = globalRoot * localCylinderBottom1;
+	updateUniformVariables(globalCylinderBottom1);
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom1.Draw();
+
+	// DRAW CYLINDER - Bottom 2
 	mat4 localCylinderBottom1 = identity_mat4();
 	localCylinderBottom1 = rotate_x_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[0]);
 	localCylinderBottom1 = rotate_y_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[1]);
@@ -454,7 +473,7 @@ void createObjects()
 		n_ibovertices += root.Mesh.Indices.size();
 	}
 
-	// cylinder
+	// cylinders
 	float *vertices_ptr_cylinder = NULL;
 	unsigned int *indices_ptr_cylinder = NULL;
 	result = obj_loader2.LoadFile(cylinderFileName);
@@ -463,12 +482,15 @@ void createObjects()
 		// create separate vertex array for vertices, normals etc
 		vertices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Vertices[0].Position.X;
 		indices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Indices[0];
-		cylinderBottom1 = Assignment1::CGObject();
-		cylinderBottom1.Mesh = obj_loader2.LoadedMeshes[0];
-		cylinderBottom1.startVBO = n_vbovertices;
-		cylinderBottom1.startIBO = n_ibovertices;
-		cylinderBottom1.initialTranslateVector = vec3(-10.0f, -1.0f, 0.0f);
-		cylinderBottom1.Parent = &root;
+		cylinderBottom1 = cylinderBottom2 = cylinderBottom3 = cylinderBottom4 = Assignment1::CGObject();
+		cylinderBottom1.Mesh = cylinderBottom2.Mesh = cylinderBottom3.Mesh = cylinderBottom4.Mesh = obj_loader2.LoadedMeshes[0];
+		cylinderBottom1.startVBO = cylinderBottom2.startVBO = cylinderBottom3.startVBO = cylinderBottom4.startVBO = n_vbovertices;
+		cylinderBottom1.startIBO = cylinderBottom2.startIBO = cylinderBottom3.startIBO = cylinderBottom4.startIBO = n_ibovertices;
+		cylinderBottom1.initialTranslateVector = vec3(-5.0f, -1.0f, 0.0f);
+		cylinderBottom2.initialTranslateVector = vec3(-5.0f, -1.0f, 1.0f);
+		cylinderBottom3.initialTranslateVector = vec3(-5.0f, -1.0f, 2.0f);
+		cylinderBottom4.initialTranslateVector = vec3(-5.0f, -1.0f, 3.0f);
+		cylinderBottom1.Parent = cylinderBottom2.Parent = cylinderBottom3.Parent = cylinderBottom4.Parent = &root;
 				
 		n_vbovertices += cylinderBottom1.Mesh.Vertices.size();
 		n_ibovertices += cylinderBottom1.Mesh.Indices.size();
