@@ -18,18 +18,22 @@ namespace Assignment1
 		int startVBO = 0;
 		int startIBO = 0;
 
-		// Local translate transform
+		// Initial transform
 		vec3 initialTranslateVector = vec3(0, 0, 0);
 		vec3 initialScaleVector = vec3(0.0f, 0.0f, 0.0f);
 		vec3 initialRotateAngle = vec3(0, 0, 0);
 
-		// Local rotate transform
+		// Transform vectors
 		vec3 translateVector = vec3(0, 0, 0);
 		vec3 scaleVector = vec3(0.0f, 0.0f, 0.0f);
 		vec3 rotateAngles = vec3(0, 0, 0);
 
-		CGObject *Parent;
+		// Current position
+		mat4 globalTransform = identity_mat4();
+		
+		CGObject *Parent = nullptr;
 
 		void Draw();
+		mat4 createTransform();
 	};
 }

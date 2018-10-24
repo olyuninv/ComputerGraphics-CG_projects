@@ -27,8 +27,9 @@ using namespace std;
 GLuint shaderProgramID;
 
 unsigned int teapot_vao = 0;
-int width = 800;
+int width = 1600;
 int height = 600;
+const float planeSize = 10.0f;
 
 GLuint vbo = 0;
 GLuint ibo = 0;
@@ -40,10 +41,14 @@ Assignment1::CGObject cylinderBottom1;
 Assignment1::CGObject cylinderBottom2;
 Assignment1::CGObject cylinderBottom3;
 Assignment1::CGObject cylinderBottom4;
+Assignment1::CGObject cylinderBottom5;
 Assignment1::CGObject cylinderTop1;
 Assignment1::CGObject cylinderTop2;
 Assignment1::CGObject cylinderTop3;
 Assignment1::CGObject cylinderTop4;
+Assignment1::CGObject cylinderTop5;
+
+bool loadKinght = false;
 
 GLuint loc1;
 GLuint loc2;
@@ -66,6 +71,20 @@ unsigned int cylinder_vao = 0;
 Operation operation = Operation::None;
 Direction direction = Direction::None;
 bool printInfo = false;
+
+enum class Phase
+{
+	Phase1,
+	Phase2,
+	Phase3,
+	Phase4,
+	Phase5
+};
+
+bool grabStarted = false;
+bool pickupStarted = false;
+Phase grabPhase = Phase::Phase1;
+bool grabComplete = false;
 
 GLfloat const step = 0.1f;
 vec3 translateVector1 = vec3(0, -30, 0);
@@ -91,6 +110,19 @@ void updateUniformVariables(mat4 model, mat4 view, mat4 persp_proj)
 	glUniformMatrix4fv(view_mat_location, 1, GL_FALSE, view.m);
 	updateUniformVariables(model);
 }
+
+mat4 orthogonal(float left, float right, float bottom, float top, float nearz, float farz) {
+	mat4 m = zero_mat4();
+	m.m[0] = 2 / (right - left);
+	m.m[5] = 2 / (top - bottom);
+	m.m[10] = 2 / (farz - nearz);
+	m.m[12] = -((right + left) / (right - left));
+	m.m[13] = -((top + bottom) / (top - bottom));
+	m.m[14] = -((farz + nearz) / (farz - nearz));
+	m.m[15] = 1.0f;
+
+	return m;
+};
 
 // Shader Functions- click on + to expand
 #pragma region SHADER_FUNCTIONS
@@ -188,7 +220,7 @@ GLuint CompileShaders()
 // VBO Functions - click on + to expand
 #pragma region VBO_FUNCTIONS
 
-void linkCurrentBuffertoShader(int objectIndex) 
+void linkCurrentBuffertoShader(int objectIndex)
 {
 	if (objectIndex == 1)
 	{
@@ -279,7 +311,7 @@ void addToObjectBuffer(int objectIndex, int startVBO, int n_vertices, float *ver
 		glGenVertexArrays(1, &plane_vao);
 		break;
 	case 2:
-		glGenVertexArrays(1, &knight_vao);		
+		glGenVertexArrays(1, &knight_vao);
 		break;
 	case 3:
 		glGenVertexArrays(1, &cylinder_vao);
@@ -288,12 +320,12 @@ void addToObjectBuffer(int objectIndex, int startVBO, int n_vertices, float *ver
 		glGenVertexArrays(1, &root_vao);
 		break;
 	}
-	
+
 	linkCurrentBuffertoShader(objectIndex);
 }
 
 void addToIndexBuffer(int startIBO, int n_indices, unsigned int *indices)
-{	
+{
 	// Create index buffer
 	glGenBuffers(1, &ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -334,6 +366,10 @@ void display() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shaderProgramID);
 
+	// SCREEN 1 
+	// perspective
+	glViewport(0, 0, width * 2 / 3, height);
+
 	// Position the camera
 	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 20.0 + cameraTranslateVector.v[1] * step, 20.0 + cameraTranslateVector.v[2] * step);
 	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * step, 1.0 + cameraRotateVector.v[1] * step, 0.0 + cameraRotateVector.v[2] * step));
@@ -343,56 +379,127 @@ void display() {
 	updateUniformVariables(local1, view, persp_proj);
 
 	// DRAW PLANE
-	glBindVertexArray(plane_vao);	
+	glBindVertexArray(plane_vao);
 	linkCurrentBuffertoShader(1);
 	plane.Draw();
-	
+
 	// DRAW ROOT
-	mat4 localRoot = identity_mat4();// Root of the Hierarchy			
-	//localRoot = scale(local1, scaleVector1);
-	localRoot = rotate_x_deg(localRoot, root.initialRotateAngle.v[0]);
-	localRoot = rotate_y_deg(localRoot, root.initialRotateAngle.v[1]);
-	localRoot = rotate_z_deg(localRoot, root.initialRotateAngle.v[2]);
-	localRoot = translate(localRoot, root.initialTranslateVector);
-
-	mat4 globalRoot = localRoot;
-	updateUniformVariables(globalRoot);
-
+	mat4 globalRootTransform = root.createTransform();// Root of the Hierarchy				
+	updateUniformVariables(globalRootTransform);
+	root.globalTransform = globalRootTransform; // keep current state
 	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(4);
 	root.Draw();
 
 	// DRAW CYLINDER - Bottom 1
-	mat4 localCylinderBottom1 = identity_mat4();
-	localCylinderBottom1 = rotate_x_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[0]);
-	localCylinderBottom1 = rotate_y_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[1]);
-	localCylinderBottom1 = rotate_z_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[2]);
-	localCylinderBottom1 = translate(localCylinderBottom1, cylinderBottom1.initialTranslateVector);
-	mat4 globalCylinderBottom1 = globalRoot * localCylinderBottom1;
-	updateUniformVariables(globalCylinderBottom1);
+	mat4 globalTransformCylinderBottom1 = cylinderBottom1.createTransform();
+	updateUniformVariables(globalTransformCylinderBottom1);
+	cylinderBottom1.globalTransform = globalTransformCylinderBottom1; // keep current state
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom1.Draw();
 
 	// DRAW CYLINDER - Bottom 2
-	mat4 localCylinderBottom1 = identity_mat4();
-	localCylinderBottom1 = rotate_x_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[0]);
-	localCylinderBottom1 = rotate_y_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[1]);
-	localCylinderBottom1 = rotate_z_deg(localCylinderBottom1, cylinderBottom1.initialRotateAngle.v[2]);
-	localCylinderBottom1 = translate(localCylinderBottom1, cylinderBottom1.initialTranslateVector);
-	mat4 globalCylinderBottom1 = globalRoot * localCylinderBottom1;
-	updateUniformVariables(globalCylinderBottom1);
+	mat4 globalTransformCylinderBottom2 = cylinderBottom2.createTransform();
+	updateUniformVariables(globalTransformCylinderBottom2);
+	cylinderBottom2.globalTransform = globalTransformCylinderBottom2; // keep current state
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom2.Draw();
+
+	// DRAW CYLINDER - Bottom 3
+	mat4 globalTransformCylinderBottom3 = cylinderBottom3.createTransform();
+	updateUniformVariables(globalTransformCylinderBottom3);
+	cylinderBottom3.globalTransform = globalTransformCylinderBottom3; // keep current state
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom3.Draw();
+
+	// DRAW CYLINDER - Bottom 4
+	mat4 globalTransformCylinderBottom4 = cylinderBottom4.createTransform();
+	updateUniformVariables(globalTransformCylinderBottom4);
+	cylinderBottom4.globalTransform = globalTransformCylinderBottom4; // keep current state
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom4.Draw();
+
+	// DRAW CYLINDER - Bottom 5
+	mat4 globalTransformCylinderBottom5 = cylinderBottom5.createTransform();
+	updateUniformVariables(globalTransformCylinderBottom5);
+	cylinderBottom5.globalTransform = globalTransformCylinderBottom5; // keep current state
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom5.Draw();
+
+	if (loadKinght)
+	{
+		// DRAW Knight
+		mat4 globalTransformKnight = knight.createTransform();
+		updateUniformVariables(globalTransformKnight);
+		knight.globalTransform = globalTransformKnight; // keep current state
+		glBindVertexArray(knight_vao);
+		linkCurrentBuffertoShader(2);
+		knight.Draw();
+	}
+
+	// SCREEN 2
+	// orthographic	
+	glViewport(width * 2 / 3, 0, width / 3, height);
+
+	cameraPosition = vec3(0.0, 10.0, 0.0);
+	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0));
+	mat4 ortho_proj = orthogonal(-planeSize, planeSize, -planeSize, planeSize, -planeSize, planeSize);
+	updateUniformVariables(local1, view, ortho_proj);
+
+	//// DRAW PLANE	
+	//glBindVertexArray(plane_vao);
+	//linkCurrentBuffertoShader(1);
+	//plane.Draw();
+
+	// DRAW ROOT	
+	updateUniformVariables(root.globalTransform);   // use already calculated transform	
+	glBindVertexArray(root_vao);
+	linkCurrentBuffertoShader(4);
+	root.Draw();
+
+	// DRAW CYLINDER - Bottom 1	
+	updateUniformVariables(cylinderBottom1.globalTransform);
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom1.Draw();
 
-	// DRAW Knight
-	mat4 localKnight = identity_mat4();
-	mat4 globalKnight = localKnight;
-	updateUniformVariables(globalKnight);
-	glBindVertexArray(knight_vao);
-	linkCurrentBuffertoShader(2);
-	knight.Draw();
+	// DRAW CYLINDER - Bottom 2
+	updateUniformVariables(cylinderBottom2.globalTransform);
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom2.Draw();
+
+	// DRAW CYLINDER - Bottom 3
+	updateUniformVariables(cylinderBottom3.globalTransform);
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom3.Draw();
+
+	// DRAW CYLINDER - Bottom 4
+	updateUniformVariables(cylinderBottom4.globalTransform);
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom4.Draw();
+
+	// DRAW CYLINDER - Bottom 5
+	updateUniformVariables(cylinderBottom5.globalTransform);
+	glBindVertexArray(cylinder_vao);
+	linkCurrentBuffertoShader(3);
+	cylinderBottom5.Draw();
+
+	if (loadKinght)
+	{
+		// DRAW Knight
+		updateUniformVariables(knight.globalTransform);
+		glBindVertexArray(knight_vao);
+		linkCurrentBuffertoShader(2);
+		knight.Draw();
+	}
 
 	glutSwapBuffers();
 
@@ -412,6 +519,128 @@ void updateScene() {
 		delta = 0.03f;
 	last_time = curr_time;
 
+	if (grabStarted & !grabComplete)
+	{
+		bool xcentered = false;
+		bool zcentered = false;
+
+		switch (grabPhase)
+		{
+		case Phase::Phase1:
+			// Move hand to center
+			if (abs(root.globalTransform.m[12]) > 0.1 && root.globalTransform.m[12] < 0)  // current X-position negative
+			{
+				root.translateVector.v[0] += 0.1f;
+			}
+			else if (abs(root.globalTransform.m[12]) > 0.1 && root.globalTransform.m[12] > 0)  // current X-position positive
+			{
+				root.translateVector.v[0] -= 0.1f;
+			}
+			else
+			{
+				// We are centered in X-coord
+				xcentered = true;
+			}
+
+			if (abs(root.globalTransform.m[14]) > 0.1 && root.globalTransform.m[14] < 0)  // current Z-position negative
+			{
+				root.translateVector.v[2] += 0.1f;
+			}
+			else if (abs(root.globalTransform.m[14]) > 0.1 && root.globalTransform.m[14] > 0)  // current Z-position positive
+			{
+				root.translateVector.v[2] -= 0.1f;
+			}
+			else
+			{
+				// We are centered in Z-coord
+				zcentered = true;
+			}
+
+			if (xcentered && zcentered)
+				grabPhase = Phase::Phase2;
+
+			break;
+		case Phase::Phase2:
+			// Lower hand - assume begins higher than the knight
+			if (root.globalTransform.m[13] > 2.5f)
+			{
+				root.translateVector.v[1] -= 0.1f;
+			}
+			else
+			{
+				grabPhase = Phase::Phase3;
+			}
+
+			break;
+		case Phase::Phase3:
+			// Grab knight
+			if (cylinderBottom1.rotateAngles.v[2] > -90.0f)
+			{
+				// Turn all 5 fingers
+				cylinderBottom1.rotateAngles.v[2] -= 0.5f;
+				cylinderBottom2.rotateAngles.v[2] -= 0.5f;
+				cylinderBottom3.rotateAngles.v[2] -= 0.5f;
+				cylinderBottom4.rotateAngles.v[2] -= 0.5f;
+				cylinderBottom5.rotateAngles.v[1] -= 0.5f;   // Rotate around X
+			}
+			else
+			{
+				// grab complete				
+				grabComplete = true;
+
+				// re-parent knight
+				knight.Parent = &root;
+				knight.initialTranslateVector = vec3(0.0f, -2.0f, 0.0);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	if (pickupStarted)
+	{
+
+		switch (grabPhase)
+		{
+		case Phase::Phase4:
+			// Pickup hand
+			if (root.globalTransform.m[13] < root.initialTranslateVector.v[1])   // go back to initial hight
+			{
+				root.translateVector.v[1] += 0.1f;
+			}
+			else
+			{
+				grabPhase = Phase::Phase5;
+			}
+			break;
+		case Phase::Phase5:
+			// Release findgers and drop the knight				
+			if (cylinderBottom1.rotateAngles.v[2] < 0.0f)
+			{
+				// Turn all 5 fingers
+				cylinderBottom1.rotateAngles.v[2] += 0.5f;
+				cylinderBottom2.rotateAngles.v[2] += 0.5f;
+				cylinderBottom3.rotateAngles.v[2] += 0.5f;
+				cylinderBottom4.rotateAngles.v[2] += 0.5f;
+				cylinderBottom5.rotateAngles.v[1] += 0.5f;   // Rotate around X
+			}
+			else
+			{
+				// reset all variables as move is complete			
+				grabStarted = false;
+				grabComplete = false;
+				pickupStarted = false;
+
+				// re-parent knight
+				knight.Parent = nullptr;
+				knight.initialTranslateVector = vec3(0.0f, 0.0f, 0.0);
+			}
+		default:
+			break;
+		}
+	}
+
 	// Draw the next frame
 	glutPostRedisplay();
 }
@@ -424,10 +653,10 @@ void createObjects()
 	//// Create plane where knight is standing
 	plane = Assignment1::CGObject();
 	objl::Vertex point1, point2, point3, point4 = objl::Vertex();
-	point1.Position = objl::Vector3(-10.0f, 0.0f, -10.0f);
-	point2.Position = objl::Vector3(10.0f, 0.0f, -10.0f);
-	point3.Position = objl::Vector3(10.0f, 0.0f, 10.0f);
-	point4.Position = objl::Vector3(-10.0f, 0.0f, 10.0f);
+	point1.Position = objl::Vector3(-planeSize, 0.0f, -planeSize);
+	point2.Position = objl::Vector3(planeSize, 0.0f, -planeSize);
+	point3.Position = objl::Vector3(planeSize, 0.0f, planeSize);
+	point4.Position = objl::Vector3(-planeSize, 0.0f, planeSize);
 
 	point1.Normal = point2.Normal = point3.Normal = point4.Normal = objl::Vector3(0.0f, 1.0f, 0.0f);
 	point1.TextureCoordinate = point2.TextureCoordinate = point3.TextureCoordinate = point4.TextureCoordinate = objl::Vector2(0.013400, 0.997700);  //green
@@ -453,7 +682,7 @@ void createObjects()
 	const char* knightFileName = "../Assignment1/Mesh/Knight/Knight_sm.obj";
 	const char* rootFileName = "../Assignment1/Mesh/Palm/palm.obj";
 	const char* cylinderFileName = "../Assignment1/Mesh/Cylinder/cylinder.obj";
-		
+
 	// root
 	float *vertices_ptr_root = NULL;
 	unsigned int *indices_ptr_root = NULL;
@@ -467,7 +696,7 @@ void createObjects()
 		root.Mesh = obj_loader1.LoadedMeshes[0];
 		root.startVBO = n_vbovertices;
 		root.startIBO = n_ibovertices;
-		root.initialTranslateVector = vec3(-10.0f, 3.0f, -10.0f);
+		root.initialTranslateVector = vec3(-10.0f, 4.0f, -10.0f);
 
 		n_vbovertices += root.Mesh.Vertices.size();
 		n_ibovertices += root.Mesh.Indices.size();
@@ -482,16 +711,20 @@ void createObjects()
 		// create separate vertex array for vertices, normals etc
 		vertices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Vertices[0].Position.X;
 		indices_ptr_cylinder = &obj_loader2.LoadedMeshes[0].Indices[0];
-		cylinderBottom1 = cylinderBottom2 = cylinderBottom3 = cylinderBottom4 = Assignment1::CGObject();
-		cylinderBottom1.Mesh = cylinderBottom2.Mesh = cylinderBottom3.Mesh = cylinderBottom4.Mesh = obj_loader2.LoadedMeshes[0];
-		cylinderBottom1.startVBO = cylinderBottom2.startVBO = cylinderBottom3.startVBO = cylinderBottom4.startVBO = n_vbovertices;
-		cylinderBottom1.startIBO = cylinderBottom2.startIBO = cylinderBottom3.startIBO = cylinderBottom4.startIBO = n_ibovertices;
-		cylinderBottom1.initialTranslateVector = vec3(-5.0f, -1.0f, 0.0f);
-		cylinderBottom2.initialTranslateVector = vec3(-5.0f, -1.0f, 1.0f);
-		cylinderBottom3.initialTranslateVector = vec3(-5.0f, -1.0f, 2.0f);
-		cylinderBottom4.initialTranslateVector = vec3(-5.0f, -1.0f, 3.0f);
-		cylinderBottom1.Parent = cylinderBottom2.Parent = cylinderBottom3.Parent = cylinderBottom4.Parent = &root;
-				
+		cylinderBottom1 = cylinderBottom2 = cylinderBottom3 = cylinderBottom4 = cylinderBottom5 = Assignment1::CGObject();
+		cylinderBottom1.Mesh = cylinderBottom2.Mesh = cylinderBottom3.Mesh = cylinderBottom4.Mesh = cylinderBottom5.Mesh = obj_loader2.LoadedMeshes[0];
+		cylinderBottom1.startVBO = cylinderBottom2.startVBO = cylinderBottom3.startVBO = cylinderBottom4.startVBO = cylinderBottom5.startVBO = n_vbovertices;
+		cylinderBottom1.startIBO = cylinderBottom2.startIBO = cylinderBottom3.startIBO = cylinderBottom4.startIBO = cylinderBottom5.startIBO = n_ibovertices;
+
+		// Positions
+		cylinderBottom1.initialTranslateVector = vec3(1.0f, 0.0f, -1.5f);
+		cylinderBottom2.initialTranslateVector = vec3(1.0f, 0.0f, -0.5f);
+		cylinderBottom3.initialTranslateVector = vec3(1.0f, 0.0f, 0.5f);
+		cylinderBottom4.initialTranslateVector = vec3(1.0f, 0.0f, 1.5f);
+		cylinderBottom5.initialTranslateVector = vec3(0.0f, 0.0f, 1.5f);
+		cylinderBottom5.initialRotateAngle = vec3(0.0f, -90.0f, 0.0f);
+		cylinderBottom1.Parent = cylinderBottom2.Parent = cylinderBottom3.Parent = cylinderBottom4.Parent = cylinderBottom5.Parent = &root;
+
 		n_vbovertices += cylinderBottom1.Mesh.Vertices.size();
 		n_ibovertices += cylinderBottom1.Mesh.Indices.size();
 	}
@@ -499,20 +732,26 @@ void createObjects()
 	// knight
 	float *vertices_ptr_knight = NULL;
 	unsigned int *indices_ptr_knight = NULL;
-	result = obj_loader3.LoadFile(knightFileName);
-	if (result)
+	if (loadKinght)
 	{		
-		vertices_ptr_knight = &obj_loader3.LoadedMeshes[0].Vertices[0].Position.X;
-		indices_ptr_knight = &obj_loader3.LoadedMeshes[0].Indices[0];
-		knight = Assignment1::CGObject();
-		knight.Mesh = obj_loader3.LoadedMeshes[0];
-		knight.startVBO = n_vbovertices;
-		knight.startIBO = n_ibovertices;
+		result = obj_loader3.LoadFile(knightFileName);
+		if (result)
+		{
+			vertices_ptr_knight = &obj_loader3.LoadedMeshes[0].Vertices[0].Position.X;
+			indices_ptr_knight = &obj_loader3.LoadedMeshes[0].Indices[0];
+			knight = Assignment1::CGObject();
+			knight.Mesh = obj_loader3.LoadedMeshes[0];
+			knight.startVBO = n_vbovertices;
+			knight.startIBO = n_ibovertices;
 
-		n_vbovertices += knight.Mesh.Vertices.size();
-		n_ibovertices += knight.Mesh.Indices.size();
+			// Position
+			knight.initialRotateAngle = vec3(0, 180, 0);
+
+			n_vbovertices += knight.Mesh.Vertices.size();
+			n_ibovertices += knight.Mesh.Indices.size();
+		}
 	}
-		
+
 	//Declare your uniform variables that will be used in your shader
 	matrix_location = glGetUniformLocation(shaderProgramID, "model");
 	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
@@ -531,22 +770,28 @@ void createObjects()
 
 	if (error != 0)
 		throw exception("Could not initialise Vertex Buffer");
-	
-	addToObjectBuffer(1, plane.startVBO, plane.Mesh.Vertices.size(), vertices_ptr_plane);	
-	addToObjectBuffer(4, root.startVBO, root.Mesh.Vertices.size(), vertices_ptr_root); 
+
+	addToObjectBuffer(1, plane.startVBO, plane.Mesh.Vertices.size(), vertices_ptr_plane);
+	addToObjectBuffer(4, root.startVBO, root.Mesh.Vertices.size(), vertices_ptr_root);
 	addToObjectBuffer(3, cylinderBottom1.startVBO, cylinderBottom1.Mesh.Vertices.size(), vertices_ptr_cylinder);
-	addToObjectBuffer(2, knight.startVBO, knight.Mesh.Vertices.size(), vertices_ptr_knight);
-			
+	if (loadKinght)
+	{
+		addToObjectBuffer(2, knight.startVBO, knight.Mesh.Vertices.size(), vertices_ptr_knight);
+	}
+
 	// Create IBO
 	glGenBuffers(1, &ibo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, n_ibovertices * sizeof(unsigned int), NULL, GL_STATIC_DRAW);
 
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, plane.startIBO * sizeof(unsigned int), sizeof(unsigned int) * plane.Mesh.Indices.size(), indices_ptr_plane);	
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, plane.startIBO * sizeof(unsigned int), sizeof(unsigned int) * plane.Mesh.Indices.size(), indices_ptr_plane);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, root.startIBO * sizeof(unsigned int), sizeof(unsigned int) * root.Mesh.Indices.size(), indices_ptr_root);
 	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, cylinderBottom1.startIBO * sizeof(unsigned int), sizeof(unsigned int) * cylinderBottom1.Mesh.Indices.size(), indices_ptr_cylinder);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, knight.startIBO * sizeof(unsigned int), sizeof(unsigned int) * knight.Mesh.Indices.size(), indices_ptr_knight);
-	
+	if (loadKinght)
+	{
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, knight.startIBO * sizeof(unsigned int), sizeof(unsigned int) * knight.Mesh.Indices.size(), indices_ptr_knight);
+	}
+
 	//addToIndexBuffer(iboMeshes[0], plane.Mesh.Indices.size(), indices_ptr_plane);
 }
 
@@ -556,7 +801,7 @@ void init()
 	shaderProgramID = CompileShaders();
 
 	createObjects();
-	
+
 	operation = Operation::Translate;
 	direction = Direction::X;
 }
@@ -565,6 +810,22 @@ void init()
 void keypress(unsigned char key, int x, int y) {
 
 	switch (key) {
+	case 'g':
+		// Grab knight
+		if (!grabStarted)
+		{
+			grabStarted = true;
+			grabPhase = Phase::Phase1;
+		}
+		break;
+	case 'p':
+		// Pickup knight and release
+		if (grabComplete)
+		{
+			pickupStarted = true;
+			grabPhase = Phase::Phase4;
+		}
+		break;
 	case 'r':
 		operation = Operation::Rotate;
 		direction = Direction::X;
