@@ -86,7 +86,8 @@ bool pickupStarted = false;
 Phase grabPhase = Phase::Phase1;
 bool grabComplete = false;
 
-GLfloat const step = 0.1f;
+GLfloat const step = 0.3f;
+GLfloat const rotateStep = 0.05f;
 vec3 translateVector1 = vec3(0, -30, 0);
 vec3 scaleVector1 = vec3(0.5f, 0.5f, 0.5f);
 vec3 rotateAngles1 = vec3(0, 0, 0);
@@ -372,7 +373,11 @@ void display() {
 
 	// Position the camera
 	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 20.0 + cameraTranslateVector.v[1] * step, 20.0 + cameraTranslateVector.v[2] * step);
-	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * step, 1.0 + cameraRotateVector.v[1] * step, 0.0 + cameraRotateVector.v[2] * step));
+	//mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * rotateStep, 1.0 + cameraRotateVector.v[1] * rotateStep, 0.0 + cameraRotateVector.v[2] * rotateStep));
+	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
+	view = rotate_x_deg(view, cameraRotateVector.v[0]);
+	view = rotate_y_deg(view, cameraRotateVector.v[1]);
+	view = rotate_z_deg(view, cameraRotateVector.v[2]);
 	mat4 persp_proj = perspective(40.0, aspectRatio, 0.1, 100.0);
 
 	mat4 local1 = identity_mat4();
