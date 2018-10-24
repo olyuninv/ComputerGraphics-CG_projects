@@ -29,7 +29,7 @@ GLuint shaderProgramID;
 unsigned int teapot_vao = 0;
 int width = 1600;
 int height = 600;
-const float planeSize = 10.0f;
+const float planeSize = 15.0f;
 
 GLuint vbo = 0;
 GLuint ibo = 0;
@@ -446,15 +446,15 @@ void display() {
 	// orthographic	
 	glViewport(width * 2 / 3, 0, width / 3, height);
 
-	cameraPosition = vec3(0.0, 10.0, 0.0);
-	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0));
+	cameraPosition = vec3(0.0, -10.0, 0.0);
+	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0));
 	mat4 ortho_proj = orthogonal(-planeSize, planeSize, -planeSize, planeSize, -planeSize, planeSize);
 	updateUniformVariables(local1, view, ortho_proj);
 
-	//// DRAW PLANE	
-	//glBindVertexArray(plane_vao);
-	//linkCurrentBuffertoShader(1);
-	//plane.Draw();
+	// DRAW PLANE	
+	glBindVertexArray(plane_vao);
+	linkCurrentBuffertoShader(1);
+	plane.Draw();
 
 	// DRAW ROOT	
 	updateUniformVariables(root.globalTransform);   // use already calculated transform	
