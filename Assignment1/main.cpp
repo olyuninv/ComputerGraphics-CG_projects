@@ -11,7 +11,7 @@
 #include <vector>
 #include <string>
 #include "maths_funcs.h"
-#include "Obj_parser.h"
+#include "Lighting.h"
 
 //#include "Mesh.h"
 #include "CGobject.h"
@@ -62,6 +62,8 @@ int matrix_location = 0;
 int view_mat_location = 0;
 int proj_mat_location = 0;
 int normals_location = 0;
+int lightColor_location = 0;
+int ambientIntensity_location = 0;
 
 unsigned int plane_vao = 0;
 unsigned int knight_vao = 0;
@@ -124,6 +126,17 @@ mat4 orthogonal(float left, float right, float bottom, float top, float nearz, f
 
 	return m;
 };
+
+void setLighting()
+{
+	DirectionalLight directionalLight;
+
+	directionalLight.Color = vec3(1.0f, 1.0f, 1.0f);
+	directionalLight.AmbientIntensity = 0.5f;
+
+	glUniform3f(lightColor_location, directionalLight.Color.v[0], directionalLight.Color.v[1], directionalLight.Color.v[2]);
+	glUniform1f(ambientIntensity_location, directionalLight.AmbientIntensity);
+}
 
 // Shader Functions- click on + to expand
 #pragma region SHADER_FUNCTIONS
@@ -762,6 +775,8 @@ void createObjects()
 	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
 	normals_location = glGetUniformLocation(shaderProgramID, "normals");
+	lightColor_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.Color");
+	ambientIntensity_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.AmbientIntensity");
 
 	loc1 = glGetAttribLocation(shaderProgramID, "vertex_position");
 	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normals");
@@ -806,6 +821,8 @@ void init()
 	shaderProgramID = CompileShaders();
 
 	createObjects();
+
+	setLighting();
 
 	operation = Operation::Translate;
 	direction = Direction::X;

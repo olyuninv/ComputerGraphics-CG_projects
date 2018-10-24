@@ -1,9 +1,11 @@
 #version 330
 
 in vec3 vertex_position;
+in vec2 vertex_texture;
 in vec3 vertex_normals;
 
 out vec3 n_eye;
+out vec2 TexCoord0;
 
 uniform mat4 normals;
 uniform mat4 view;
@@ -13,4 +15,5 @@ uniform mat4 model;
 void main(){
 	n_eye = (view * normals * vec4 (vertex_normals, 0.0)).xyz;
 	gl_Position =  proj * view * model * vec4 (vertex_position, 1.0);
+	TexCoord0 = vertex_texture;
 }

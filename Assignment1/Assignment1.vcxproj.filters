@@ -33,6 +33,9 @@
     <ClCompile Include="CGObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Lighting.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="maths_funcs.h">
@@ -44,10 +47,7 @@
     <ClInclude Include="CGObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Obj_parser.h">
+    <ClInclude Include="Lighting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

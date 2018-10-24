@@ -133,16 +133,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CGObject.cpp" />
+    <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maths_funcs.cpp" />
     <ClCompile Include="Obj_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CGObject.h" />
+    <ClInclude Include="Lighting.h" />
     <ClInclude Include="maths_funcs.h" />
-    <ClInclude Include="Mesh.h" />
     <ClInclude Include="OBJ_Loader.h" />
-    <ClInclude Include="Obj_parser.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CG_Utility\CG_Utility.vcxproj">
