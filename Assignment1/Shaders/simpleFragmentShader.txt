@@ -1,20 +1,50 @@
 #version 330
 
-uniform vec4 Ambient;
-
+in vec3 WorldPos0;
 in vec3 n_eye;
+in vec3 Normal0;
 in vec2 TexCoord0;
 
 out vec4 frag_colour;
 
 struct DirectionalLight
 {
-   	vec3 Color;
-   	float AmbientIntensity;
+    vec3 Color;
+    float AmbientIntensity;
+    float DiffuseIntensity;
+    vec3 Direction;
 };
 
 uniform DirectionalLight gDirectionalLight;
+uniform vec3 gEyeWorldPos;
+uniform float gMatSpecularIntensity;
+uniform float gSpecularPower;
 
 void main(){
-	frag_colour = min(vec4 (n_eye, 1.0) * vec4(gDirectionalLight.Color, 1.0f) * gDirectionalLight.AmbientIntensity, vec4(1.0));
+	vec4 AmbientColor = vec4(gDirectionalLight.Color * gDirectionalLight.AmbientIntensity, 1.0f);
+	vec3 LightDirection = -gDirectionalLight.Direction;
+	vec3 Normal = normalize(Normal0);
+
+	float DiffuseFactor = dot(Normal, LightDirection);
+
+	vec4 DiffuseColor = vec4(0, 0, 0, 0);
+    vec4 SpecularColor = vec4(0, 0, 0, 0);
+
+    if (DiffuseFactor > 0) {                                                        
+        DiffuseColor = vec4(gDirectionalLight.Color, 1.0f) * gDirectionalLight.DiffuseIntensity * DiffuseFactor;                                               
+
+		vec3 VertexToEye = normalize(gEyeWorldPos - WorldPos0);
+        vec3 LightReflect = normalize(reflect(gDirectionalLight.Direction, Normal));
+		float SpecularFactor = dot(VertexToEye, LightReflect);
+
+        if (SpecularFactor > 0) {
+            SpecularFactor = pow(SpecularFactor, gSpecularPower);
+            SpecularColor = vec4(gDirectionalLight.Color * gMatSpecularIntensity * SpecularFactor, 1.0f);
+        }
+    }                                                                               
+    else {                                                                          
+        DiffuseColor = vec4(0, 0, 0, 0);                                            
+    }                                                                               
+                                                                                    
+    frag_colour = vec4 (n_eye, 1.0) * (AmbientColor + DiffuseColor + SpecularColor);
 }

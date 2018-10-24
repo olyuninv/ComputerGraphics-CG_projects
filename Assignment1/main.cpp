@@ -27,8 +27,8 @@ using namespace std;
 GLuint shaderProgramID;
 
 unsigned int teapot_vao = 0;
-int width = 1600;
-int height = 600;
+int width = 2000;
+int height = 800;
 const float planeSize = 15.0f;
 
 GLuint vbo = 0;
@@ -58,12 +58,19 @@ GLfloat rotatez = 0.0f;
 GLfloat movex = 0.0f;
 GLfloat movey = 5.0f;
 
+// Uniform location variables
 int matrix_location = 0;
 int view_mat_location = 0;
 int proj_mat_location = 0;
 int normals_location = 0;
+int worldNormal = 0;
 int lightColor_location = 0;
 int ambientIntensity_location = 0;
+int lightDirection_location = 0;
+int diffuseIntensity_location = 0;
+int eyeWorldPos_location = 0; 
+int specularIntensity_location = 0;
+int specularPower_location = 0;
 
 unsigned int plane_vao = 0;
 unsigned int knight_vao = 0;
@@ -78,13 +85,13 @@ enum class Phase
 {
 	Phase1,
 	Phase2,
-	Phase3,
-	Phase4,
-	Phase5
+	Phase3
 };
 
 bool grabStarted = false;
 bool pickupStarted = false;
+bool pickupComplete = false;
+bool releaseStarted = false;
 Phase grabPhase = Phase::Phase1;
 bool grabComplete = false;
 
@@ -105,6 +112,7 @@ void updateUniformVariables(mat4 model)
 
 	mat4 normalsTransform = transpose(inverse(model));
 	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+	glUniformMatrix4fv(worldNormal, 1, GL_FALSE, normalsTransform.m);
 }
 
 void updateUniformVariables(mat4 model, mat4 view, mat4 persp_proj)
@@ -127,15 +135,29 @@ mat4 orthogonal(float left, float right, float bottom, float top, float nearz, f
 	return m;
 };
 
-void setLighting()
+void setupLighting()
 {
 	DirectionalLight directionalLight;
 
-	directionalLight.Color = vec3(1.0f, 1.0f, 1.0f);
-	directionalLight.AmbientIntensity = 0.5f;
+	directionalLight.Color = vec3(1.0f, 1.0f, 1.0f);	
+	directionalLight.AmbientIntensity = 0.01f;
+	directionalLight.DiffuseIntensity = 0.75f;
+	directionalLight.Direction = vec3(1.0f, -1.0, 0.0);
 
+	vec3 Direction = directionalLight.Direction;
+	normalise(Direction);
+	
+	// Ambient Lighting
 	glUniform3f(lightColor_location, directionalLight.Color.v[0], directionalLight.Color.v[1], directionalLight.Color.v[2]);
 	glUniform1f(ambientIntensity_location, directionalLight.AmbientIntensity);
+	
+	// Diffuse Lighting 
+	glUniform3f(lightDirection_location, Direction.v[0], Direction.v[1], Direction.v[2]);
+	glUniform1f(diffuseIntensity_location, directionalLight.DiffuseIntensity);
+
+	// Specular Lighting
+	glUniform1f(specularIntensity_location, 1.0f);
+	glUniform1f(specularPower_location, 32);
 }
 
 // Shader Functions- click on + to expand
@@ -391,12 +413,19 @@ void display() {
 	view = rotate_x_deg(view, cameraRotateVector.v[0]);
 	view = rotate_y_deg(view, cameraRotateVector.v[1]);
 	view = rotate_z_deg(view, cameraRotateVector.v[2]);
+
+	// Specular Lighting
+	glUniform3f(eyeWorldPos_location, cameraPosition.v[0], cameraPosition.v[1], cameraPosition.v[2]);
+	
 	mat4 persp_proj = perspective(40.0, aspectRatio, 0.1, 100.0);
 
 	mat4 local1 = identity_mat4();
 	updateUniformVariables(local1, view, persp_proj);
 
 	// DRAW PLANE
+	mat4 normalsTransform = transpose(inverse(local1));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(plane_vao);
 	linkCurrentBuffertoShader(1);
 	plane.Draw();
@@ -405,6 +434,10 @@ void display() {
 	mat4 globalRootTransform = root.createTransform();// Root of the Hierarchy				
 	updateUniformVariables(globalRootTransform);
 	root.globalTransform = globalRootTransform; // keep current state
+
+	normalsTransform = transpose(inverse(globalRootTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(4);
 	root.Draw();
@@ -413,6 +446,10 @@ void display() {
 	mat4 globalTransformCylinderBottom1 = cylinderBottom1.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom1);
 	cylinderBottom1.globalTransform = globalTransformCylinderBottom1; // keep current state
+
+	normalsTransform = transpose(inverse(globalTransformCylinderBottom1));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom1.Draw();
@@ -421,6 +458,10 @@ void display() {
 	mat4 globalTransformCylinderBottom2 = cylinderBottom2.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom2);
 	cylinderBottom2.globalTransform = globalTransformCylinderBottom2; // keep current state
+	
+	normalsTransform = transpose(inverse(globalTransformCylinderBottom2));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom2.Draw();
@@ -429,6 +470,10 @@ void display() {
 	mat4 globalTransformCylinderBottom3 = cylinderBottom3.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom3);
 	cylinderBottom3.globalTransform = globalTransformCylinderBottom3; // keep current state
+
+	normalsTransform = transpose(inverse(globalTransformCylinderBottom3));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom3.Draw();
@@ -437,6 +482,10 @@ void display() {
 	mat4 globalTransformCylinderBottom4 = cylinderBottom4.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom4);
 	cylinderBottom4.globalTransform = globalTransformCylinderBottom4; // keep current state
+
+	normalsTransform = transpose(inverse(globalTransformCylinderBottom4));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom4.Draw();
@@ -445,6 +494,10 @@ void display() {
 	mat4 globalTransformCylinderBottom5 = cylinderBottom5.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom5);
 	cylinderBottom5.globalTransform = globalTransformCylinderBottom5; // keep current state
+
+	normalsTransform = transpose(inverse(globalTransformCylinderBottom5));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom5.Draw();
@@ -455,6 +508,10 @@ void display() {
 		mat4 globalTransformKnight = knight.createTransform();
 		updateUniformVariables(globalTransformKnight);
 		knight.globalTransform = globalTransformKnight; // keep current state
+		
+		normalsTransform = transpose(inverse(globalTransformKnight));
+		glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 		glBindVertexArray(knight_vao);
 		linkCurrentBuffertoShader(2);
 		knight.Draw();
@@ -466,46 +523,79 @@ void display() {
 
 	cameraPosition = vec3(0.0, -10.0, 0.0);
 	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0));
-	mat4 ortho_proj = orthogonal(-planeSize, planeSize, -planeSize, planeSize, -planeSize, planeSize);
+	mat4 ortho_proj = orthogonal(-planeSize -10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f);
 	updateUniformVariables(local1, view, ortho_proj);
 
+	// Diffuse Lighting	
+	glUniform3f(lightDirection_location, 1.0f, -1.0, 0.0);
+
+	// Specular Lighting
+	glUniform3f(eyeWorldPos_location, cameraPosition.v[0], cameraPosition.v[1], cameraPosition.v[2]);
+	
 	// DRAW PLANE	
+	normalsTransform = transpose(inverse(identity_mat4()));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(plane_vao);
 	linkCurrentBuffertoShader(1);
 	plane.Draw();
 
 	// DRAW ROOT	
 	updateUniformVariables(root.globalTransform);   // use already calculated transform	
+
+	normalsTransform = transpose(inverse(root.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(4);
 	root.Draw();
 
 	// DRAW CYLINDER - Bottom 1	
 	updateUniformVariables(cylinderBottom1.globalTransform);
+
+	normalsTransform = transpose(inverse(cylinderBottom1.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom1.Draw();
 
 	// DRAW CYLINDER - Bottom 2
 	updateUniformVariables(cylinderBottom2.globalTransform);
+
+	normalsTransform = transpose(inverse(cylinderBottom2.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom2.Draw();
 
 	// DRAW CYLINDER - Bottom 3
 	updateUniformVariables(cylinderBottom3.globalTransform);
+	
+	normalsTransform = transpose(inverse(cylinderBottom3.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom3.Draw();
 
 	// DRAW CYLINDER - Bottom 4
 	updateUniformVariables(cylinderBottom4.globalTransform);
+
+	normalsTransform = transpose(inverse(cylinderBottom4.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+	
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom4.Draw();
 
 	// DRAW CYLINDER - Bottom 5
 	updateUniformVariables(cylinderBottom5.globalTransform);
+	
+	normalsTransform = transpose(inverse(cylinderBottom5.globalTransform));
+	glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(3);
 	cylinderBottom5.Draw();
@@ -514,6 +604,10 @@ void display() {
 	{
 		// DRAW Knight
 		updateUniformVariables(knight.globalTransform);
+		
+		normalsTransform = transpose(inverse(knight.globalTransform));
+		glUniformMatrix4fv(normals_location, 1, GL_FALSE, normalsTransform.m);
+
 		glBindVertexArray(knight_vao);
 		linkCurrentBuffertoShader(2);
 		knight.Draw();
@@ -618,22 +712,18 @@ void updateScene() {
 
 	if (pickupStarted)
 	{
-
-		switch (grabPhase)
+		if (root.globalTransform.m[13] < root.initialTranslateVector.v[1])   // go back to initial hight
 		{
-		case Phase::Phase4:
-			// Pickup hand
-			if (root.globalTransform.m[13] < root.initialTranslateVector.v[1])   // go back to initial hight
-			{
-				root.translateVector.v[1] += 0.1f;
-			}
-			else
-			{
-				grabPhase = Phase::Phase5;
-			}
-			break;
-		case Phase::Phase5:
-			// Release findgers and drop the knight				
+			root.translateVector.v[1] += 0.1f;
+		}
+		else
+		{
+			pickupComplete = true;
+		}
+	}
+
+	if (releaseStarted)
+	{		
 			if (cylinderBottom1.rotateAngles.v[2] < 0.0f)
 			{
 				// Turn all 5 fingers
@@ -649,26 +739,22 @@ void updateScene() {
 				grabStarted = false;
 				grabComplete = false;
 				pickupStarted = false;
+				pickupComplete = false;
+				releaseStarted = false;
 
 				// re-parent knight
 				knight.Parent = nullptr;
 				knight.initialTranslateVector = vec3(0.0f, 0.0f, 0.0);
 			}
-		default:
-			break;
-		}
 	}
 
 	// Draw the next frame
 	glutPostRedisplay();
 }
 
-void createObjects()
+void initPlane()
 {
-	int n_vbovertices = 0;
-	int n_ibovertices = 0;
-
-	//// Create plane where knight is standing
+	// Create plane or ground
 	plane = Assignment1::CGObject();
 	objl::Vertex point1, point2, point3, point4 = objl::Vertex();
 	point1.Position = objl::Vector3(-planeSize, 0.0f, -planeSize);
@@ -685,6 +771,15 @@ void createObjects()
 	plane.Mesh = objl::Mesh(vertices, indices);
 	plane.startVBO = 0;
 	plane.startIBO = 0;
+}
+
+void createObjects()
+{
+	int n_vbovertices = 0;
+	int n_ibovertices = 0;
+
+	// Initialise ground
+	initPlane();
 
 	float *vertices_ptr_plane = &plane.Mesh.Vertices[0].Position.X;
 	unsigned int *indices_ptr_plane = &plane.Mesh.Indices[0];
@@ -775,9 +870,15 @@ void createObjects()
 	view_mat_location = glGetUniformLocation(shaderProgramID, "view");
 	proj_mat_location = glGetUniformLocation(shaderProgramID, "proj");
 	normals_location = glGetUniformLocation(shaderProgramID, "normals");
+	worldNormal = glGetUniformLocation(shaderProgramID, "gWorld");
 	lightColor_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.Color");
 	ambientIntensity_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.AmbientIntensity");
-
+	lightDirection_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.Direction");
+	diffuseIntensity_location = glGetUniformLocation(shaderProgramID, "gDirectionalLight.DiffuseIntensity");
+	eyeWorldPos_location = glGetUniformLocation(shaderProgramID, "gEyeWorldPos");
+	specularIntensity_location = glGetUniformLocation(shaderProgramID, "gMatSpecularIntensity");
+	specularPower_location = glGetUniformLocation(shaderProgramID, "gSpecularPower");
+	
 	loc1 = glGetAttribLocation(shaderProgramID, "vertex_position");
 	loc2 = glGetAttribLocation(shaderProgramID, "vertex_normals");
 	loc3 = glGetAttribLocation(shaderProgramID, "vertex_texture");
@@ -822,7 +923,7 @@ void init()
 
 	createObjects();
 
-	setLighting();
+	setupLighting();
 
 	operation = Operation::Translate;
 	direction = Direction::X;
@@ -845,7 +946,13 @@ void keypress(unsigned char key, int x, int y) {
 		if (grabComplete)
 		{
 			pickupStarted = true;
-			grabPhase = Phase::Phase4;
+		}
+		break;
+	case 'd':
+		// Drop knight
+		if (pickupComplete)
+		{
+			releaseStarted = true;
 		}
 		break;
 	case 'r':
@@ -879,6 +986,22 @@ void keypress(unsigned char key, int x, int y) {
 	case 'z':
 		direction = Direction::Z;
 		printInfo = true;
+		break;
+	case '2':
+		// Move hand down Z-axis
+		root.translateVector.v[2] -= step;
+		break;
+	case '4':
+		// Move hand left X-axis
+		root.translateVector.v[0] -= step;
+		break;
+	case '6':
+		// Move hand right X-axis
+		root.translateVector.v[0] += step;
+		break;
+	case '8':
+		// Move hand up Z-axis
+		root.translateVector.v[2] += step;
 		break;
 	default:
 		break;

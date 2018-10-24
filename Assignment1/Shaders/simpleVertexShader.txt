@@ -5,8 +5,11 @@ in vec2 vertex_texture;
 in vec3 vertex_normals;
 
 out vec3 n_eye;
+out vec3 Normal0;
 out vec2 TexCoord0;
+out vec3 WorldPos0;
 
+uniform mat4 gWorld;
 uniform mat4 normals;
 uniform mat4 view;
 uniform mat4 proj;
@@ -14,6 +17,9 @@ uniform mat4 model;
 
 void main(){
 	n_eye = (view * normals * vec4 (vertex_normals, 0.0)).xyz;
+	Normal0 = normalize(gWorld * vec4 (vertex_normals, 0.0)).xyz;
+
 	gl_Position =  proj * view * model * vec4 (vertex_position, 1.0);
 	TexCoord0 = vertex_texture;
+	WorldPos0 = (gWorld * vec4(vertex_position, 1.0)).xyz;
 }
