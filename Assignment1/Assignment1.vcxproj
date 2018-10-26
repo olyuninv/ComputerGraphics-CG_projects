@@ -136,7 +136,6 @@
     <ClCompile Include="Lighting.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maths_funcs.cpp" />
-    <ClCompile Include="Obj_parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CGObject.h" />

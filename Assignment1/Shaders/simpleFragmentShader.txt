@@ -20,6 +20,8 @@ uniform vec3 gEyeWorldPos;
 uniform float gMatSpecularIntensity;
 uniform float gSpecularPower;
 
+uniform vec3 objectColor;
+
 void main(){
 	vec4 AmbientColor = vec4(gDirectionalLight.Color * gDirectionalLight.AmbientIntensity, 1.0f);
 	vec3 LightDirection = -gDirectionalLight.Direction;
@@ -46,5 +48,5 @@ void main(){
         DiffuseColor = vec4(0, 0, 0, 0);                                            
     }                                                                               
                                                                                     
-    frag_colour = vec4 (n_eye, 1.0) * (AmbientColor + DiffuseColor + SpecularColor);
+    frag_colour = vec4(objectColor, 1.0f) * (AmbientColor + DiffuseColor + SpecularColor);
 }

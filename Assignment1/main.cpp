@@ -17,7 +17,6 @@
 #include "CGobject.h"
 #include "OBJ_Loader.h"
 
-
 #include "../CG_Utility/stdafx.h"
 
 // Macro for indexing vertex buffer
@@ -56,7 +55,7 @@ Assignment1::CGObject cylinderTop3;
 Assignment1::CGObject cylinderTop4;
 Assignment1::CGObject cylinderTop5;
 
-bool loadKinght = false;
+bool loadKinght = true;
 
 GLuint loc1;
 GLuint loc2;
@@ -79,6 +78,7 @@ int diffuseIntensity_location = 0;
 int eyeWorldPos_location = 0;
 int specularIntensity_location = 0;
 int specularPower_location = 0;
+int quickObjectColor_location = 0;
 
 unsigned int plane_vao = 0;
 unsigned int knight_vao = 0;
@@ -402,7 +402,7 @@ void display() {
 	glViewport(0, 0, width * 2 / 3, height);
 
 	// Position the camera
-	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 20.0 + cameraTranslateVector.v[1] * step, 20.0 + cameraTranslateVector.v[2] * step);
+	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 30.0 + cameraTranslateVector.v[1] * step, cameraTranslateVector.v[2] * step);
 	//mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * rotateStep, 1.0 + cameraRotateVector.v[1] * rotateStep, 0.0 + cameraRotateVector.v[2] * rotateStep));
 	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
 	view = rotate_x_deg(view, cameraRotateVector.v[0]);
@@ -418,6 +418,7 @@ void display() {
 	updateUniformVariables(local1, view, persp_proj);
 
 	// DRAW PLANE
+	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);
 	glBindVertexArray(plane_vao);
 	linkCurrentBuffertoShader(MeshType::plane);
 	plane.Draw();
@@ -426,6 +427,8 @@ void display() {
 	mat4 globalRootTransform = root.createTransform();// Root of the Hierarchy				
 	updateUniformVariables(globalRootTransform);
 	root.globalTransform = globalRootTransform; // keep current state
+	glUniform3f(quickObjectColor_location, root.color.v[0], root.color.v[1], root.color.v[2]);
+
 	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(MeshType::root);
 	root.Draw();
@@ -476,6 +479,7 @@ void display() {
 		mat4 globalTransformKnight = knight.createTransform();
 		updateUniformVariables(globalTransformKnight);
 		knight.globalTransform = globalTransformKnight; // keep current state
+		glUniform3f(quickObjectColor_location, knight.color.v[0], knight.color.v[1], knight.color.v[2]);
 		glBindVertexArray(knight_vao);
 		linkCurrentBuffertoShader(MeshType::knight);
 		knight.Draw();
@@ -487,7 +491,7 @@ void display() {
 
 	cameraPosition = vec3(0.0, -10.0, 0.0);
 	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0));
-	mat4 ortho_proj = orthogonal(-planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f);
+	mat4 ortho_proj = orthogonal(planeSize + 10.0f, -planeSize - 10.0f, -planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f);
 	updateUniformVariables(local1, view, ortho_proj);
 
 	// Diffuse Lighting	
@@ -497,12 +501,14 @@ void display() {
 	glUniform3f(eyeWorldPos_location, cameraPosition.v[0], cameraPosition.v[1], cameraPosition.v[2]);
 
 	// DRAW PLANE	
+	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);
 	glBindVertexArray(plane_vao);
 	linkCurrentBuffertoShader(MeshType::plane);
 	plane.Draw();
 
 	// DRAW ROOT	
 	updateUniformVariables(root.globalTransform);   // use already calculated transform	
+	glUniform3f(quickObjectColor_location, root.color.v[0], root.color.v[1], root.color.v[2]);
 	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(MeshType::root);
 	root.Draw();
@@ -541,6 +547,7 @@ void display() {
 	{
 		// DRAW Knight
 		updateUniformVariables(knight.globalTransform);
+		glUniform3f(quickObjectColor_location, knight.color.v[0], knight.color.v[1], knight.color.v[2]);
 		glBindVertexArray(knight_vao);
 		linkCurrentBuffertoShader(MeshType::knight);
 		knight.Draw();
@@ -732,6 +739,8 @@ void createUniformVariables()
 	eyeWorldPos_location = glGetUniformLocation(shaderProgramID, "gEyeWorldPos");
 	specularIntensity_location = glGetUniformLocation(shaderProgramID, "gMatSpecularIntensity");
 	specularPower_location = glGetUniformLocation(shaderProgramID, "gSpecularPower");
+	quickObjectColor_location = glGetUniformLocation(shaderProgramID, "objectColor");
+	
 }
 
 void createObjects()
@@ -742,6 +751,9 @@ void createObjects()
 	// Initialise ground	
 	plane = Assignment1::CGObject();
 	plane.Mesh = PlaneMesh();
+	plane.color = vec3(0.0f, 1.0f, 0.0f);   // Quick solution for color as we are not using texture
+
+	//plane.Mesh = LoadMesh("../Assignment1/Mesh/Grass/Grass.obj");
 	plane.startVBO = n_vbovertices;
 	plane.startIBO = n_ibovertices;
 	n_vbovertices += plane.Mesh.Vertices.size();
@@ -756,6 +768,7 @@ void createObjects()
 	root = Assignment1::CGObject();
 	root.Mesh = LoadMesh(rootFileName);
 	root.initialTranslateVector = vec3(-10.0f, 4.0f, -10.0f);
+	root.color = vec3(0.0f, 0.0f, 1.0f);   // Quick solution for color as we are not using texture
 	root.startVBO = n_vbovertices;
 	root.startIBO = n_ibovertices;
 
@@ -768,6 +781,7 @@ void createObjects()
 	cylinderBottom1.startVBO = cylinderBottom2.startVBO = cylinderBottom3.startVBO = cylinderBottom4.startVBO = cylinderBottom5.startVBO = n_vbovertices;
 	cylinderBottom1.startIBO = cylinderBottom2.startIBO = cylinderBottom3.startIBO = cylinderBottom4.startIBO = cylinderBottom5.startIBO = n_ibovertices;
 	cylinderBottom1.Parent = cylinderBottom2.Parent = cylinderBottom3.Parent = cylinderBottom4.Parent = cylinderBottom5.Parent = &root;
+	cylinderBottom1.color = cylinderBottom2.color = cylinderBottom3.color = cylinderBottom4.color = cylinderBottom5.color = vec3(0.0f, 0.0f, 1.0f);   // Quick solution for color as we are not using texture
 
 	// Positions
 	cylinderBottom1.initialTranslateVector = vec3(1.0f, 0.0f, -1.5f);
@@ -789,7 +803,8 @@ void createObjects()
 		knight.startIBO = n_ibovertices;
 
 		// Position
-		knight.initialRotateAngle = vec3(0, 180, 0);
+		knight.initialRotateAngle = vec3(0, -175, 0);
+		knight.color = vec3(1.0f, 1.0f, 0.0f);   // Quick solution for color as we are not using texture
 
 		n_vbovertices += knight.Mesh.Vertices.size();
 		n_ibovertices += knight.Mesh.Indices.size();
@@ -832,6 +847,9 @@ void createObjects()
 
 void init()
 {
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT1);
+
 	// Set up the shaders
 	shaderProgramID = CompileShaders();
 

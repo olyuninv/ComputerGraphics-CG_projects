@@ -28,6 +28,9 @@ namespace Assignment1
 		vec3 scaleVector = vec3(0.0f, 0.0f, 0.0f);
 		vec3 rotateAngles = vec3(0, 0, 0);
 
+		// Color
+		vec3 color = vec3(1.0f, 1.0f, 1.0f); // White
+
 		// Current position
 		mat4 globalTransform = identity_mat4();
 		

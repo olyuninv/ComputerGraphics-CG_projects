@@ -27,9 +27,6 @@
     <ClCompile Include="maths_funcs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Obj_parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="CGObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
