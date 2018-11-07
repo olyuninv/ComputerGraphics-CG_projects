@@ -49,11 +49,6 @@ Assignment1::CGObject cylinderBottom2;
 Assignment1::CGObject cylinderBottom3;
 Assignment1::CGObject cylinderBottom4;
 Assignment1::CGObject cylinderBottom5;
-Assignment1::CGObject cylinderTop1;
-Assignment1::CGObject cylinderTop2;
-Assignment1::CGObject cylinderTop3;
-Assignment1::CGObject cylinderTop4;
-Assignment1::CGObject cylinderTop5;
 
 bool loadKinght = true;
 
@@ -264,23 +259,22 @@ GLuint CompileShaders()
 // VBO Functions - click on + to expand
 #pragma region VBO_FUNCTIONS
 
+void bindVertexAttribute(int location, int locationSize, int startVBO, int offsetVBO)
+{
+	glEnableVertexAttribArray(location);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glVertexAttribPointer(location, locationSize, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(startVBO * 8 * sizeof(float) + BUFFER_OFFSET(offsetVBO * sizeof(GLfloat))));
+}
+
 void linkCurrentBuffertoShader(MeshType meshType)
 {
 	if (meshType == MeshType::plane)
 	{
 		glBindVertexArray(plane_vao);
 
-		glEnableVertexAttribArray(loc1);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float)));
-
-		glEnableVertexAttribArray(loc2);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
-
-		glEnableVertexAttribArray(loc3);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(plane.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+		bindVertexAttribute(loc1, 3, plane.startVBO, 0);
+		bindVertexAttribute(loc2, 3, plane.startVBO, 3);
+		bindVertexAttribute(loc3, 2, plane.startVBO, 6);
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -289,17 +283,9 @@ void linkCurrentBuffertoShader(MeshType meshType)
 	{
 		glBindVertexArray(knight_vao);
 
-		glEnableVertexAttribArray(loc1);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float)));
-
-		glEnableVertexAttribArray(loc2);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
-
-		glEnableVertexAttribArray(loc3);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(knight.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+		bindVertexAttribute(loc1, 3, knight.startVBO, 0);
+		bindVertexAttribute(loc2, 3, knight.startVBO, 3);
+		bindVertexAttribute(loc3, 2, knight.startVBO, 6);
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -308,17 +294,9 @@ void linkCurrentBuffertoShader(MeshType meshType)
 	{
 		glBindVertexArray(cylinder_vao);
 
-		glEnableVertexAttribArray(loc1);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float)));
-
-		glEnableVertexAttribArray(loc2);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
-
-		glEnableVertexAttribArray(loc3);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(cylinderBottom1.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+		bindVertexAttribute(loc1, 3, cylinderBottom1.startVBO, 0);
+		bindVertexAttribute(loc2, 3, cylinderBottom1.startVBO, 3);
+		bindVertexAttribute(loc3, 2, cylinderBottom1.startVBO, 6);
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -327,17 +305,9 @@ void linkCurrentBuffertoShader(MeshType meshType)
 	{
 		glBindVertexArray(root_vao);
 
-		glEnableVertexAttribArray(loc1);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc1, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float)));
-
-		glEnableVertexAttribArray(loc2);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc2, 3, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(3 * sizeof(GLfloat))));
-
-		glEnableVertexAttribArray(loc3);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
-		glVertexAttribPointer(loc3, 2, GL_FLOAT, GL_TRUE, 8 * sizeof(float), (void*)(root.startVBO * 8 * sizeof(float) + BUFFER_OFFSET(6 * sizeof(GLfloat))));
+		bindVertexAttribute(loc1, 3, root.startVBO, 0);
+		bindVertexAttribute(loc2, 3, root.startVBO, 3);
+		bindVertexAttribute(loc3, 2, root.startVBO, 6);
 
 		//IBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -388,8 +358,6 @@ void display() {
 		height = rect.bottom - rect.top;
 	}
 
-	float aspectRatio = (float)width / (float)height;
-
 	// tell GL to only draw onto a pixel if the shape is closer to the viewer
 	glEnable(GL_DEPTH_TEST); // enable depth-testing
 	glDepthFunc(GL_LESS); // depth-testing interprets a smaller value as "closer"
@@ -402,7 +370,7 @@ void display() {
 	glViewport(0, 0, width * 2 / 3, height);
 
 	// Position the camera
-	vec3 cameraPosition = vec3(20.0 + cameraTranslateVector.v[0] * step, 30.0 + cameraTranslateVector.v[1] * step, cameraTranslateVector.v[2] * step);
+	vec3 cameraPosition = vec3(30.0 + cameraTranslateVector.v[0] * step, 40.0 + cameraTranslateVector.v[1] * step, cameraTranslateVector.v[2] * step);
 	//mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0 + cameraRotateVector.v[0] * rotateStep, 1.0 + cameraRotateVector.v[1] * rotateStep, 0.0 + cameraRotateVector.v[2] * rotateStep));
 	mat4 view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0));
 	view = rotate_x_deg(view, cameraRotateVector.v[0]);
@@ -412,14 +380,14 @@ void display() {
 	// Specular Lighting
 	glUniform3f(eyeWorldPos_location, cameraPosition.v[0], cameraPosition.v[1], cameraPosition.v[2]);
 
+	float aspectRatio = (float)width * 2/3 / (float)height;
 	mat4 persp_proj = perspective(40.0, aspectRatio, 0.1, 100.0);
 
 	mat4 local1 = identity_mat4();
 	updateUniformVariables(local1, view, persp_proj);
 
 	// DRAW PLANE
-	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);
-	glBindVertexArray(plane_vao);
+	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);	
 	linkCurrentBuffertoShader(MeshType::plane);
 	plane.Draw();
 
@@ -428,8 +396,6 @@ void display() {
 	updateUniformVariables(globalRootTransform);
 	root.globalTransform = globalRootTransform; // keep current state
 	glUniform3f(quickObjectColor_location, root.color.v[0], root.color.v[1], root.color.v[2]);
-
-	glBindVertexArray(root_vao);
 	linkCurrentBuffertoShader(MeshType::root);
 	root.Draw();
 
@@ -437,7 +403,6 @@ void display() {
 	mat4 globalTransformCylinderBottom1 = cylinderBottom1.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom1);
 	cylinderBottom1.globalTransform = globalTransformCylinderBottom1; // keep current state
-	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom1.Draw();
 
@@ -445,7 +410,6 @@ void display() {
 	mat4 globalTransformCylinderBottom2 = cylinderBottom2.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom2);
 	cylinderBottom2.globalTransform = globalTransformCylinderBottom2; // keep current state
-	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom2.Draw();
 
@@ -453,7 +417,6 @@ void display() {
 	mat4 globalTransformCylinderBottom3 = cylinderBottom3.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom3);
 	cylinderBottom3.globalTransform = globalTransformCylinderBottom3; // keep current state
-	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom3.Draw();
 
@@ -461,7 +424,6 @@ void display() {
 	mat4 globalTransformCylinderBottom4 = cylinderBottom4.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom4);
 	cylinderBottom4.globalTransform = globalTransformCylinderBottom4; // keep current state
-	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom4.Draw();
 
@@ -469,7 +431,6 @@ void display() {
 	mat4 globalTransformCylinderBottom5 = cylinderBottom5.createTransform();
 	updateUniformVariables(globalTransformCylinderBottom5);
 	cylinderBottom5.globalTransform = globalTransformCylinderBottom5; // keep current state
-	glBindVertexArray(cylinder_vao);
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom5.Draw();
 
@@ -480,7 +441,6 @@ void display() {
 		updateUniformVariables(globalTransformKnight);
 		knight.globalTransform = globalTransformKnight; // keep current state
 		glUniform3f(quickObjectColor_location, knight.color.v[0], knight.color.v[1], knight.color.v[2]);
-		glBindVertexArray(knight_vao);
 		linkCurrentBuffertoShader(MeshType::knight);
 		knight.Draw();
 	}
@@ -491,7 +451,10 @@ void display() {
 
 	cameraPosition = vec3(0.0, -10.0, 0.0);
 	view = look_at(cameraPosition, vec3(0.0, 0.0, 0.0), vec3(-1.0, 0.0, 0.0));
-	mat4 ortho_proj = orthogonal(planeSize + 10.0f, -planeSize - 10.0f, -planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f);
+	
+	aspectRatio = (float)width * 1 / 3 / (float)height;
+
+	mat4 ortho_proj = orthogonal((planeSize + 10.0f) * aspectRatio, (-planeSize - 10.0f) * aspectRatio, -planeSize - 10.0f, planeSize + 10.0f, -planeSize - 10.0f, planeSize + 10.0f);
 	updateUniformVariables(local1, view, ortho_proj);
 
 	// Diffuse Lighting	
@@ -501,45 +464,38 @@ void display() {
 	glUniform3f(eyeWorldPos_location, cameraPosition.v[0], cameraPosition.v[1], cameraPosition.v[2]);
 
 	// DRAW PLANE	
-	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);
-	glBindVertexArray(plane_vao);
+	glUniform3f(quickObjectColor_location, plane.color.v[0], plane.color.v[1], plane.color.v[2]);	
 	linkCurrentBuffertoShader(MeshType::plane);
 	plane.Draw();
 
 	// DRAW ROOT	
 	updateUniformVariables(root.globalTransform);   // use already calculated transform	
-	glUniform3f(quickObjectColor_location, root.color.v[0], root.color.v[1], root.color.v[2]);
-	glBindVertexArray(root_vao);
+	glUniform3f(quickObjectColor_location, root.color.v[0], root.color.v[1], root.color.v[2]);	
 	linkCurrentBuffertoShader(MeshType::root);
 	root.Draw();
 
 	// DRAW CYLINDER - Bottom 1	
-	updateUniformVariables(cylinderBottom1.globalTransform);
-	glBindVertexArray(cylinder_vao);
+	updateUniformVariables(cylinderBottom1.globalTransform);	
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom1.Draw();
 
 	// DRAW CYLINDER - Bottom 2
-	updateUniformVariables(cylinderBottom2.globalTransform);
-	glBindVertexArray(cylinder_vao);
+	updateUniformVariables(cylinderBottom2.globalTransform);	
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom2.Draw();
 
 	// DRAW CYLINDER - Bottom 3
-	updateUniformVariables(cylinderBottom3.globalTransform);
-	glBindVertexArray(cylinder_vao);
+	updateUniformVariables(cylinderBottom3.globalTransform);	
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom3.Draw();
 
 	// DRAW CYLINDER - Bottom 4
-	updateUniformVariables(cylinderBottom4.globalTransform);
-	glBindVertexArray(cylinder_vao);
+	updateUniformVariables(cylinderBottom4.globalTransform);	
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom4.Draw();
 
 	// DRAW CYLINDER - Bottom 5
-	updateUniformVariables(cylinderBottom5.globalTransform);
-	glBindVertexArray(cylinder_vao);
+	updateUniformVariables(cylinderBottom5.globalTransform);	
 	linkCurrentBuffertoShader(MeshType::cylinder);
 	cylinderBottom5.Draw();
 
@@ -547,8 +503,7 @@ void display() {
 	{
 		// DRAW Knight
 		updateUniformVariables(knight.globalTransform);
-		glUniform3f(quickObjectColor_location, knight.color.v[0], knight.color.v[1], knight.color.v[2]);
-		glBindVertexArray(knight_vao);
+		glUniform3f(quickObjectColor_location, knight.color.v[0], knight.color.v[1], knight.color.v[2]);		
 		linkCurrentBuffertoShader(MeshType::knight);
 		knight.Draw();
 	}
